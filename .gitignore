@@ -1,0 +1,15 @@
+# Dependencies (reinstalled with "npm install", never stored in git)
+node_modules/
+
+# Secrets - never commit these
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db

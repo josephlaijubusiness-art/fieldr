@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fieldr — AI chat that answers your customers, day and night</title>
+  <meta name="description" content="Fieldr gives Irish SMEs an AI chatbot that answers customer questions 24/7, captures leads automatically, and installs on any website with one line of code." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Manrope', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+        },
+      },
+    };
+  </script>
+  <style>
+    html { scroll-behavior: smooth; }
+  </style>
+</head>
+<body class="font-sans text-slate-800 antialiased">
+
+  <!-- Nav -->
+  <header class="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <a href="#" class="text-xl font-extrabold tracking-tight text-slate-900">Fieldr<span class="text-emerald-500">.</span></a>
+      <nav class="hidden items-center gap-8 text-sm font-medium text-slate-600 md:flex">
+        <a href="#features" class="hover:text-slate-900">Features</a>
+        <a href="#how" class="hover:text-slate-900">How it works</a>
+        <a href="#pricing" class="hover:text-slate-900">Pricing</a>
+        <a href="#contact" class="hover:text-slate-900">Contact</a>
+      </nav>
+      <div class="flex items-center gap-3">
+        <a id="loginLink" href="#" class="hidden text-sm font-medium text-slate-600 hover:text-slate-900 sm:block">Client login</a>
+        <a href="#contact" class="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-700">Book a demo</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="relative overflow-hidden bg-gradient-to-b from-white to-slate-50">
+    <div class="mx-auto grid max-w-6xl items-center gap-12 px-6 py-20 md:grid-cols-2 md:py-28">
+      <div>
+        <span class="inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-emerald-700">For Irish SMEs</span>
+        <h1 class="mt-5 text-4xl font-extrabold leading-tight tracking-tight text-slate-900 md:text-5xl">
+          AI chat that answers your customers — day and night.
+        </h1>
+        <p class="mt-5 text-lg leading-relaxed text-slate-600">
+          Fieldr puts a friendly AI assistant on your website that knows your business inside out.
+          It answers questions instantly, captures leads while you sleep, and takes two minutes to install.
+        </p>
+        <div class="mt-8 flex flex-wrap gap-3">
+          <a href="#contact" class="rounded-lg bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-emerald-700">Book a free demo</a>
+          <a href="#pricing" class="rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-50">See pricing</a>
+        </div>
+        <p class="mt-4 text-sm text-slate-400">No technical know-how needed. We set everything up for you.</p>
+      </div>
+
+      <!-- Mock chat preview -->
+      <div class="relative mx-auto w-full max-w-sm">
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-xl">
+          <div class="flex items-center justify-between rounded-t-2xl bg-emerald-600 px-4 py-3 text-white">
+            <span class="font-semibold">Murphy's Plumbing</span>
+            <span class="text-lg">&times;</span>
+          </div>
+          <div class="space-y-3 p-4">
+            <div class="max-w-[85%] rounded-2xl rounded-bl-sm bg-slate-100 px-3 py-2 text-sm">Hi! How can I help you today?</div>
+            <div class="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-emerald-600 px-3 py-2 text-sm text-white">Do you do emergency callouts?</div>
+            <div class="max-w-[85%] rounded-2xl rounded-bl-sm bg-slate-100 px-3 py-2 text-sm">Yes — we cover emergency callouts 24/7 across Dublin. Would you like someone to ring you back?</div>
+            <div class="ml-auto max-w-[85%] rounded-2xl rounded-br-sm bg-emerald-600 px-3 py-2 text-sm text-white">Yes please, 086 123 4567</div>
+            <div class="max-w-[85%] rounded-2xl rounded-bl-sm bg-slate-100 px-3 py-2 text-sm">Perfect — I've passed your number to the team. ✅</div>
+          </div>
+        </div>
+        <div class="absolute -bottom-4 -right-2 rounded-full bg-amber-400 px-3 py-1 text-xs font-bold text-amber-900 shadow">Lead captured!</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Benefits -->
+  <section class="border-y border-slate-200 bg-white">
+    <div class="mx-auto grid max-w-6xl gap-8 px-6 py-16 sm:grid-cols-2 lg:grid-cols-4">
+      <div>
+        <div class="text-3xl">🕑</div>
+        <h3 class="mt-3 font-bold text-slate-900">Never miss an enquiry</h3>
+        <p class="mt-2 text-sm text-slate-600">Your bot replies in seconds, 24/7 — evenings, weekends and bank holidays included.</p>
+      </div>
+      <div>
+        <div class="text-3xl">🎯</div>
+        <h3 class="mt-3 font-bold text-slate-900">Capture more leads</h3>
+        <p class="mt-2 text-sm text-slate-600">When a visitor's interested, the bot takes their name and number so you can follow up.</p>
+      </div>
+      <div>
+        <div class="text-3xl">💬</div>
+        <h3 class="mt-3 font-bold text-slate-900">Sounds like your business</h3>
+        <p class="mt-2 text-sm text-slate-600">Trained on your services, prices and FAQs — it only answers with your real information.</p>
+      </div>
+      <div>
+        <div class="text-3xl">⚡</div>
+        <h3 class="mt-3 font-bold text-slate-900">Live in days, not months</h3>
+        <p class="mt-2 text-sm text-slate-600">We do the setup. One line of code goes on your site and you're away.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section id="features" class="bg-slate-50">
+    <div class="mx-auto max-w-6xl px-6 py-20">
+      <div class="mx-auto max-w-2xl text-center">
+        <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Everything your customers need, automatically</h2>
+        <p class="mt-4 text-slate-600">A complete chat assistant for your website — without hiring anyone.</p>
+      </div>
+      <div class="mt-14 grid gap-6 md:grid-cols-3">
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 class="font-bold text-slate-900">Trained on your business</h3>
+          <p class="mt-2 text-sm text-slate-600">Paste in your services, prices, opening hours and policies. The bot answers from that — and never makes things up.</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 class="font-bold text-slate-900">Automatic lead capture</h3>
+          <p class="mt-2 text-sm text-slate-600">When someone wants a quote or callback, the bot collects their details and files them for you instantly.</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 class="font-bold text-slate-900">One-line install</h3>
+          <p class="mt-2 text-sm text-slate-600">Works on any website — Wix, Squarespace, WordPress, you name it. Just one line of code, or we add it for you.</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 class="font-bold text-slate-900">Your brand, your bot</h3>
+          <p class="mt-2 text-sm text-slate-600">Match your colours, choose the bot's name and welcome message. It feels like part of your site.</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 class="font-bold text-slate-900">See every conversation</h3>
+          <p class="mt-2 text-sm text-slate-600">Your own login shows every chat, every lead and your stats — so you know exactly what's working.</p>
+        </div>
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <h3 class="font-bold text-slate-900">Update anytime</h3>
+          <p class="mt-2 text-sm text-slate-600">Changed your prices or hours? Edit your bot's knowledge in seconds — no developer required.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- How it works -->
+  <section id="how" class="bg-white">
+    <div class="mx-auto max-w-5xl px-6 py-20">
+      <div class="mx-auto max-w-2xl text-center">
+        <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Up and running in three steps</h2>
+      </div>
+      <div class="mt-14 grid gap-10 md:grid-cols-3">
+        <div class="text-center">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-lg font-bold text-white">1</div>
+          <h3 class="mt-4 font-bold text-slate-900">Tell us about your business</h3>
+          <p class="mt-2 text-sm text-slate-600">A quick chat and a few details about what you do.</p>
+        </div>
+        <div class="text-center">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-lg font-bold text-white">2</div>
+          <h3 class="mt-4 font-bold text-slate-900">We build &amp; install your bot</h3>
+          <p class="mt-2 text-sm text-slate-600">Branded, trained and added to your website — usually within a couple of days.</p>
+        </div>
+        <div class="text-center">
+          <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600 text-lg font-bold text-white">3</div>
+          <h3 class="mt-4 font-bold text-slate-900">Watch the leads come in</h3>
+          <p class="mt-2 text-sm text-slate-600">Your bot handles questions and captures enquiries around the clock.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pricing -->
+  <section id="pricing" class="bg-slate-50">
+    <div class="mx-auto max-w-6xl px-6 py-20">
+      <div class="mx-auto max-w-2xl text-center">
+        <h2 class="text-3xl font-extrabold tracking-tight text-slate-900">Simple, honest pricing</h2>
+        <p class="mt-4 text-slate-600">No setup fees. Cancel anytime. All prices in euro, per month.</p>
+      </div>
+      <div class="mt-14 grid items-start gap-6 lg:grid-cols-3">
+        <!-- Starter -->
+        <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <h3 class="font-bold text-slate-900">Starter</h3>
+          <p class="mt-1 text-sm text-slate-500">For getting started</p>
+          <div class="mt-5 text-4xl font-extrabold text-slate-900">€149<span class="text-base font-medium text-slate-400">/mo</span></div>
+          <ul class="mt-6 space-y-3 text-sm text-slate-600">
+            <li class="flex gap-2"><span class="text-emerald-600">✓</span> 1 chatbot</li>
+            <li class="flex gap-2"><span class="text-emerald-600">✓</span> Up to 500 chats / month</li>
+            <li class="flex gap-2"><span class="text-emerald-600">✓</span> Trained on your business</li>
+            <li class="flex gap-2"><span class="text-emerald-600">✓</span> Your branding</li>
+          </ul>
+          <a href="#contact" class="mt-8 block rounded-lg border border-slate-300 py-2.5 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50">Get started</a>
+        </div>
+        <!-- Growth (highlighted) -->
+        <div class="relative rounded-2xl border-2 border-emerald-500 bg-white p-8 shadow-lg">
+          <span class="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-emerald-600 px-3 py-1 text-xs font-bold text-white">Most popular</span>
+          <h3 class="font-bold text-slate-900">Growth</h3>
+          <p class="mt-1 text-sm text-slate-500">For busy businesses</p>
+          <div class="mt-5 text-4xl font-extrabold text-slate-900">€249<span class="text-base font-medium text-slate-400">/mo</span></div>
+          <ul class="mt-6 space-y-3 text-sm text-slate-600">
+            <li class="flex gap-2"><span class="text-emerald-600">✓</span> 1 chatbot</li>
+            <li class="flex gap-2"><span class="text-emerald-600">✓</span> <strong>Unlimited</strong> chats</li>
+            <li class="flex gap-2"><span class="text-emerald-600">✓</span> Automatic lead capture</li>
+            <li class="flex gap-2"><span class="text-emerald-600">✓</span> Your branding</li>
+          </ul>
+          <a href="#contact" class="mt-8 block rounded-lg bg-emerald-600 py-2.5 text-center text-sm font-semibold text-white hover:bg-emerald-700">Get started</a>
+        </div>
+        <!-- Pro -->
+        <div class="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+          <h3 class="font-bold text-slate-900">Pro</h3>
+          <p class="mt-1 text-sm text-slate-500">For multi-site businesses</p>
+          <div class="mt-5 text-4xl font-extrabold text-slate-900">€399<span class="text-base font-medium text-slate-400">/mo</span></div>
+          <ul class="mt-6 space-y-3 text-sm text-slate-600">
+            <li class="flex gap-2"><span class="text-emerald-600">✓</span> Up to 3 chatbots</li>
+            <li class="flex gap-2"><span class="text-emerald-600">✓</span> Unlimited chats</li>
+            <li class="flex gap-2"><span class="text-emerald-600">✓</span> Automatic lead capture</li>
+            <li class="flex gap-2"><span class="text-emerald-600">✓</span> Priority support</li>
+          </ul>
+          <a href="#contact" class="mt-8 block rounded-lg border border-slate-300 py-2.5 text-center text-sm font-semibold text-slate-700 hover:bg-slate-50">Get started</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Contact / Book a demo -->
+  <section id="contact" class="bg-slate-900">
+    <div class="mx-auto grid max-w-5xl gap-12 px-6 py-20 md:grid-cols-2">
+      <div class="text-slate-100">
+        <h2 class="text-3xl font-extrabold tracking-tight">Book a free demo</h2>
+        <p class="mt-4 text-slate-300">
+          See Fieldr working on a site like yours. Leave your details and we'll be in touch to set up a quick,
+          no-pressure walkthrough — and answer any questions.
+        </p>
+        <ul class="mt-6 space-y-2 text-sm text-slate-300">
+          <li class="flex gap-2"><span class="text-emerald-400">✓</span> 15-minute demo, online</li>
+          <li class="flex gap-2"><span class="text-emerald-400">✓</span> See your own bot before you commit</li>
+          <li class="flex gap-2"><span class="text-emerald-400">✓</span> No obligation</li>
+        </ul>
+      </div>
+
+      <div class="rounded-2xl bg-white p-6 shadow-xl">
+        <form id="contactForm" class="space-y-4">
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700">Your name *</label>
+            <input name="name" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700">Business name</label>
+            <input name="business" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700">Email *</label>
+            <input name="email" type="email" required class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+          </div>
+          <div>
+            <label class="mb-1 block text-sm font-medium text-slate-700">What would you like to know?</label>
+            <textarea name="message" rows="3" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"></textarea>
+          </div>
+          <button type="submit" id="submitBtn" class="w-full rounded-lg bg-emerald-600 py-2.5 text-sm font-semibold text-white hover:bg-emerald-700 disabled:opacity-50">Request my demo</button>
+          <p id="formMsg" class="hidden text-center text-sm"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="bg-slate-900 border-t border-slate-800">
+    <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-slate-400 sm:flex-row">
+      <span class="font-extrabold text-white">Fieldr<span class="text-emerald-500">.</span></span>
+      <span>© <span id="year"></span> Fieldr · fieldr.ie · AI chat for Irish SMEs</span>
+      <a id="footerLogin" href="#" class="hover:text-white">Client login</a>
+    </div>
+  </footer>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // Point "Client login" at the portal (local in dev, portal.fieldr.ie live).
+    const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname);
+    const portalUrl = isLocal ? 'http://localhost:5174' : 'https://portal.fieldr.ie';
+    document.getElementById('loginLink').href = portalUrl;
+    document.getElementById('footerLogin').href = portalUrl;
+
+    // The backend serves this page (dev: localhost:3001, live: fieldr.ie), so
+    // the contact form posts to the same origin in both cases.
+    const API_BASE = location.origin;
+
+    const form = document.getElementById('contactForm');
+    const msg = document.getElementById('formMsg');
+    const btn = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      btn.disabled = true;
+      msg.className = 'hidden';
+      const payload = Object.fromEntries(new FormData(form).entries());
+      try {
+        const res = await fetch(API_BASE + '/api/contact', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error || 'Something went wrong.');
+        form.reset();
+        msg.textContent = "Thanks! We've got your request and will be in touch shortly.";
+        msg.className = 'text-center text-sm text-emerald-600';
+      } catch (err) {
+        msg.textContent = err.message + ' Please try again, or email hello@fieldr.ie.';
+        msg.className = 'text-center text-sm text-red-600';
+      } finally {
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
