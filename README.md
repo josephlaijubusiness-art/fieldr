@@ -72,5 +72,6 @@ npm run dev        -> http://localhost:5174
 - [x] Client portal (`portal/`, run with `npm run dev` on :5174; email+password login)
 - [x] Landing page (`server/public/index.html` — served at the backend root)
 - [x] Deploy prep: production builds, env-driven API URLs, self-contained backend ([DEPLOY.md](DEPLOY.md))
+- [x] Website crawler: auto-build a client's knowledge base from their site (`/api/clients/:id/crawl`)
 - [ ] Deploy to Railway + connect domains (follow DEPLOY.md)
 - [ ] Deploy to Railway + connect fieldr.ie

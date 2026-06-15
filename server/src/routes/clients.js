@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { supabase } from '../db.js';
+import { crawlSite, normalizeStartUrl } from '../crawler.js';
 
 // Client management API.
 // NOTE: no login protection yet — fine while everything runs only on
@@ -225,6 +226,55 @@ router.get('/:id/conversations', async (req, res) => {
   res.json(
     conversations.map((c) => ({ ...c, has_lead: leadConvIds.has(c.id) }))
   );
+});
+
+// ---------------------------------------------------------
+// POST /api/clients/:id/crawl — crawl a website, extract its text, and save
+// it as this client's knowledge base (overwrites the existing content).
+// Body: { url }  (falls back to the client's saved domain if omitted)
+// Doubles as the "refresh" action — call it again to re-crawl.
+// ---------------------------------------------------------
+router.post('/:id/crawl', async (req, res) => {
+  const { data: client, error } = await supabase
+    .from('clients')
+    .select('id, domain')
+    .eq('id', req.params.id)
+    .maybeSingle();
+  if (error) return res.status(500).json({ error: error.message });
+  if (!client) return res.status(404).json({ error: 'Client not found' });
+
+  let startUrl;
+  try {
+    startUrl = normalizeStartUrl(req.body?.url || client.domain || '');
+  } catch (e) {
+    return res.status(400).json({ error: e.message });
+  }
+
+  let result;
+  try {
+    result = await crawlSite(startUrl);
+  } catch (e) {
+    return res.status(502).json({ error: 'Crawl failed: ' + e.message });
+  }
+
+  if (result.pagesCrawled === 0) {
+    return res.status(422).json({
+      error:
+        "Couldn't read any pages from that website. Check the address is correct and publicly reachable.",
+    });
+  }
+
+  const { error: saveError } = await supabase
+    .from('knowledge_bases')
+    .upsert({ client_id: client.id, content: result.content }, { onConflict: 'client_id' });
+  if (saveError) return res.status(500).json({ error: saveError.message });
+
+  res.json({
+    content: result.content,
+    pagesCrawled: result.pagesCrawled,
+    characters: result.characters,
+    truncated: result.truncated,
+  });
 });
 
 // ---------------------------------------------------------

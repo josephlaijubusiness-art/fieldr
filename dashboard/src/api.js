@@ -50,6 +50,8 @@ export const saveKnowledgeBase = (id, content) =>
     method: 'PUT',
     body: JSON.stringify({ content }),
   });
+export const crawlWebsite = (id, url) =>
+  request(`/clients/${id}/crawl`, { method: 'POST', body: JSON.stringify({ url }) });
 
 export const getOverview = () => request('/stats/overview');
 export const getContactRequests = () => request('/contact');

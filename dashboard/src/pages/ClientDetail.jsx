@@ -5,6 +5,7 @@ import {
   updateClient,
   deleteClient,
   saveKnowledgeBase,
+  crawlWebsite,
   getConversations,
   getConversationMessages,
   createCheckout,
@@ -129,6 +130,10 @@ function KnowledgeTab({ client, onSaved }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
+  const [crawlUrl, setCrawlUrl] = useState(client.domain ?? '');
+  const [crawling, setCrawling] = useState(false);
+  const [crawlNote, setCrawlNote] = useState('');
+
   async function handleSave() {
     setBusy(true);
     setError('');
@@ -142,12 +147,66 @@ function KnowledgeTab({ client, onSaved }) {
     }
   }
 
+  const hasContent = content.trim().length > 0;
+
+  async function handleCrawl() {
+    if (
+      hasContent &&
+      !window.confirm(
+        'This will crawl the website and REPLACE the current knowledge base with the text it finds. Continue?'
+      )
+    ) {
+      return;
+    }
+    setCrawling(true);
+    setError('');
+    setCrawlNote('');
+    try {
+      const result = await crawlWebsite(client.id, crawlUrl);
+      setContent(result.content); // already saved server-side
+      setCrawlNote(
+        `Imported ${result.pagesCrawled} page${result.pagesCrawled === 1 ? '' : 's'} ` +
+          `(${result.characters.toLocaleString()} characters)${result.truncated ? ', trimmed to fit' : ''} — saved.`
+      );
+    } catch (e) {
+      setError(e.message);
+    } finally {
+      setCrawling(false);
+    }
+  }
+
   return (
     <div className="space-y-4">
       <p className="text-sm text-slate-500">
         Everything the bot knows about this business. Plain text works best — paste in their
         services, prices, opening hours, FAQs, policies. The bot will only answer from what's here.
       </p>
+
+      {/* Auto-import from the client's website */}
+      <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+        <div className="text-sm font-medium text-slate-700">Import from website</div>
+        <p className="mt-1 text-xs text-slate-500">
+          Crawl the client's site and turn its pages into the knowledge base automatically.
+          Run it again any time to refresh. (Up to 25 pages.)
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <input
+            className={inputClass + ' flex-1 min-w-[220px]'}
+            value={crawlUrl}
+            onChange={(e) => setCrawlUrl(e.target.value)}
+            placeholder="murphysplumbing.ie"
+            disabled={crawling}
+          />
+          <Button onClick={handleCrawl} disabled={crawling || !crawlUrl.trim()}>
+            {crawling ? 'Crawling…' : hasContent ? 'Re-crawl & refresh' : 'Crawl & import'}
+          </Button>
+        </div>
+        {crawling && (
+          <p className="mt-2 text-xs text-slate-500">Reading the website… this can take up to a minute.</p>
+        )}
+        {crawlNote && <p className="mt-2 text-xs text-emerald-600">{crawlNote}</p>}
+      </div>
+
       {error && <Notice kind="error">{error}</Notice>}
       <textarea
         className={inputClass + ' font-mono !text-[13px] leading-relaxed'}
