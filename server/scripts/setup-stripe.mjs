@@ -18,9 +18,9 @@ if (!key) {
 const stripe = new Stripe(key);
 
 const PLANS = [
-  { env: 'STRIPE_PRICE_STARTER', name: 'Fieldr Starter', amount: 14900 },
-  { env: 'STRIPE_PRICE_GROWTH', name: 'Fieldr Growth', amount: 24900 },
-  { env: 'STRIPE_PRICE_PRO', name: 'Fieldr Pro', amount: 39900 },
+  { env: 'STRIPE_PRICE_STARTER', name: 'Fieldr Starter', amount: 4900 },
+  { env: 'STRIPE_PRICE_GROWTH', name: 'Fieldr Growth', amount: 9900 },
+  { env: 'STRIPE_PRICE_PRO', name: 'Fieldr Pro', amount: 17900 },
 ];
 
 const live = key.startsWith('sk_live');
@@ -31,7 +31,7 @@ for (const plan of PLANS) {
   const product = await stripe.products.create({ name: plan.name });
   const price = await stripe.prices.create({
     product: product.id,
-    unit_amount: plan.amount, // in cents: 14900 = €149.00
+    unit_amount: plan.amount, // in cents: 4900 = €49.00
     currency: 'eur',
     recurring: { interval: 'month' },
   });
