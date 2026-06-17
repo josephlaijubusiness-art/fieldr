@@ -75,7 +75,6 @@ export default function Overview() {
                 <tr key={c.id} className="hover:bg-slate-50">
                   <td className="px-5 py-3">
                     <Link to={`/clients/${c.id}`} className="font-medium text-slate-900 hover:text-emerald-700">
-                      <span className="mr-2 inline-block h-2.5 w-2.5 rounded-full align-middle" style={{ background: c.brand_color }} />
                       {c.name}
                     </Link>
                   </td>

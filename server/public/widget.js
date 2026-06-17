@@ -1,12 +1,12 @@
 /*
  * Fieldr chat widget.
- * Served by the backend at /widget/CLIENT_ID with __CLIENT_ID__ filled in.
+ * Served by the backend at /widget/SITE_ID with __SITE_ID__ filled in.
  * Plain JavaScript, no dependencies — safe to drop into any website.
  */
 (function () {
   'use strict';
 
-  var CLIENT_ID = '__CLIENT_ID__';
+  var SITE_ID = '__SITE_ID__';
 
   // Work out where "home" is from the script tag itself, so the same file
   // works on localhost and on app.fieldr.ie without any configuration.
@@ -24,7 +24,7 @@
 
   // Each visitor gets a random session ID, remembered by their browser,
   // so the bot can keep track of the conversation.
-  var sessionKey = 'fieldr_session_' + CLIENT_ID;
+  var sessionKey = 'fieldr_session_' + SITE_ID;
   var sessionId;
   try {
     sessionId = localStorage.getItem(sessionKey);
@@ -139,7 +139,7 @@
       fetch(API_BASE + '/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ client_id: CLIENT_ID, session_id: sessionId, message: text }),
+        body: JSON.stringify({ site_id: SITE_ID, session_id: sessionId, message: text }),
       })
         .then(function (r) { return r.json(); })
         .then(function (data) {
@@ -158,7 +158,7 @@
   }
 
   // Fetch this client's look-and-feel, then build the widget.
-  fetch(API_BASE + '/api/widget/' + CLIENT_ID + '/config')
+  fetch(API_BASE + '/api/widget/' + SITE_ID + '/config')
     .then(function (r) {
       if (!r.ok) throw new Error('Fieldr widget: config unavailable (' + r.status + ')');
       return r.json();

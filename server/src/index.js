@@ -15,6 +15,7 @@ import { stripeWebhook } from './routes/stripeWebhook.js';
 import portalRouter from './routes/portal.js';
 import contactRouter from './routes/contact.js';
 import adminRouter from './routes/admin.js';
+import sitesRouter from './routes/sites.js';
 import { requireAdminAuth } from './auth.js';
 
 const app = express();
@@ -42,8 +43,11 @@ app.get('/health', (req, res) => {
 app.use('/api/admin', adminRouter);
 
 // --- Admin-only APIs. requireAdminAuth blocks anyone without a valid login. ---
-// Client management: add, list, update, delete clients + knowledge bases
+// Client (account) management
 app.use('/api/clients', requireAdminAuth, clientsRouter);
+
+// Per-site management (branding, knowledge base, embed, conversations)
+app.use('/api/sites', requireAdminAuth, sitesRouter);
 
 // Dashboard stats (MRR, chats, leads) and chat-history transcripts
 app.use('/api/stats', requireAdminAuth, statsRouter);

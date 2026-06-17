@@ -1,9 +1,11 @@
 import { Router } from 'express';
 import Anthropic from '@anthropic-ai/sdk';
 import { supabase } from '../db.js';
+import { resolveSite } from '../resolveSite.js';
 
-// The chat endpoint. This is what each client's widget talks to.
-// POST /api/chat  body: { client_id, session_id, message }
+// The chat endpoint. This is what each site's widget talks to.
+// POST /api/chat  body: { site_id, session_id, message }
+// (Also accepts a legacy { client_id } from old embed codes.)
 
 const router = Router();
 const anthropic = new Anthropic(); // reads ANTHROPIC_API_KEY from .env
@@ -34,8 +36,8 @@ const CAPTURE_LEAD_TOOL = {
   },
 };
 
-function buildSystemPrompt(client, knowledge) {
-  return `You are ${client.bot_name}, the friendly chat assistant on the website of ${client.name}.
+function buildSystemPrompt(botName, businessName, knowledge) {
+  return `You are ${botName}, the friendly chat assistant on the website of ${businessName}.
 
 Rules:
 - Answer questions using ONLY the business information below. Never invent prices, opening hours, services, or policies that are not in it.
@@ -51,7 +53,7 @@ ${knowledge || '(No business information has been added yet. Apologise that you 
 }
 
 // Save a lead and tell the bot how it went, so it can confirm to the visitor.
-async function saveLead(clientId, conversationId, input, triggerMessage) {
+async function saveLead(siteId, clientId, conversationId, input, triggerMessage) {
   const email = typeof input.email === 'string' ? input.email.trim() : '';
   const phone = typeof input.phone === 'string' ? input.phone.trim() : '';
   const name = typeof input.name === 'string' ? input.name.trim() : '';
@@ -64,6 +66,7 @@ async function saveLead(clientId, conversationId, input, triggerMessage) {
   }
 
   const { error } = await supabase.from('leads').insert({
+    site_id: siteId,
     client_id: clientId,
     conversation_id: conversationId,
     name: name || null,
@@ -83,11 +86,14 @@ async function saveLead(clientId, conversationId, input, triggerMessage) {
 }
 
 router.post('/', async (req, res) => {
-  const { client_id, session_id, message } = req.body ?? {};
+  const body = req.body ?? {};
+  // The widget sends site_id; old embed codes send client_id. Either works.
+  const id = body.site_id || body.client_id;
+  const { session_id, message } = body;
 
   // --- 1. Check the request makes sense ---
-  if (!UUID_REGEX.test(client_id ?? '')) {
-    return res.status(400).json({ error: 'Invalid client_id' });
+  if (!UUID_REGEX.test(id ?? '')) {
+    return res.status(400).json({ error: 'Invalid site id' });
   }
   if (typeof session_id !== 'string' || !session_id.trim() || session_id.length > 100) {
     return res.status(400).json({ error: 'Invalid session_id' });
@@ -97,25 +103,28 @@ router.post('/', async (req, res) => {
   }
   const visitorMessage = message.trim();
 
-  // --- 2. Load the client and their knowledge base ---
-  const { data: client, error: clientError } = await supabase
-    .from('clients')
-    .select('id, name, bot_name, status, knowledge_bases(content)')
-    .eq('id', client_id)
-    .maybeSingle();
+  // --- 2. Resolve the site (and its account), then load its knowledge base ---
+  const site = await resolveSite(id);
+  if (!site) return res.status(404).json({ error: 'Unknown site' });
 
-  if (clientError) return res.status(500).json({ error: clientError.message });
-  if (!client) return res.status(404).json({ error: 'Unknown client' });
-  if (client.status === 'paused' || client.status === 'cancelled') {
+  const accountStatus = site.clients?.status;
+  if (accountStatus === 'paused' || accountStatus === 'cancelled') {
     return res.status(403).json({ error: 'This chat is currently unavailable.' });
   }
-  const knowledge = client.knowledge_bases?.content ?? '';
+
+  const { data: kb, error: kbError } = await supabase
+    .from('knowledge_bases')
+    .select('content')
+    .eq('site_id', site.id)
+    .maybeSingle();
+  if (kbError) return res.status(500).json({ error: kbError.message });
+  const knowledge = kb?.content ?? '';
 
   // --- 3. Find this visitor's conversation, or start a new one ---
   let { data: conversation, error: convError } = await supabase
     .from('conversations')
     .select('id')
-    .eq('client_id', client_id)
+    .eq('site_id', site.id)
     .eq('session_id', session_id)
     .maybeSingle();
 
@@ -124,7 +133,7 @@ router.post('/', async (req, res) => {
   if (!conversation) {
     const { data: created, error: createError } = await supabase
       .from('conversations')
-      .insert({ client_id, session_id })
+      .insert({ site_id: site.id, client_id: site.client_id, session_id })
       .select('id')
       .single();
     if (createError) return res.status(500).json({ error: createError.message });
@@ -156,12 +165,13 @@ router.post('/', async (req, res) => {
 
   // --- 6. Ask Claude for a reply ---
   // The system prompt (instructions + knowledge base) is identical for every
-  // message to this client's bot, so we mark it cacheable: repeat requests
+  // message to this site's bot, so we mark it cacheable: repeat requests
   // within a few minutes cost ~90% less for that portion.
+  const businessName = site.clients?.name || 'us';
   const system = [
     {
       type: 'text',
-      text: buildSystemPrompt(client, knowledge),
+      text: buildSystemPrompt(site.bot_name, businessName, knowledge),
       cache_control: { type: 'ephemeral' },
     },
   ];
@@ -179,11 +189,15 @@ router.post('/', async (req, res) => {
     // its confirmation message with the result in hand.
     if (response.stop_reason === 'tool_use') {
       const toolResults = [];
-      let leadSaved = false;
       for (const block of response.content) {
         if (block.type !== 'tool_use') continue;
-        const outcome = await saveLead(client_id, conversation.id, block.input, visitorMessage);
-        leadSaved = leadSaved || outcome.ok;
+        const outcome = await saveLead(
+          site.id,
+          site.client_id,
+          conversation.id,
+          block.input,
+          visitorMessage
+        );
         toolResults.push({
           type: 'tool_result',
           tool_use_id: block.id,

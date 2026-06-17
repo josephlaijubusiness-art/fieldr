@@ -26,7 +26,7 @@ router.get('/overview', async (req, res) => {
   try {
     const { data: clients, error } = await supabase
       .from('clients')
-      .select('id, name, plan, status, brand_color, created_at')
+      .select('id, name, plan, status, created_at')
       .order('created_at', { ascending: false });
     if (error) throw new Error(error.message);
 

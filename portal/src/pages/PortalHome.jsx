@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import {
+  getSites,
   getStats,
   getConversations,
   getMessages,
@@ -12,20 +13,45 @@ const TABS = ['Overview', 'Conversations', 'Leads', 'Knowledge base'];
 
 export default function PortalHome({ me, onLogout }) {
   const [tab, setTab] = useState('Overview');
-  const brand = /^#[0-9a-fA-F]{6}$/.test(me.brand_color) ? me.brand_color : '#2563EB';
+  const [sites, setSites] = useState(null);
+  const [siteId, setSiteId] = useState(null);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    getSites()
+      .then((list) => {
+        setSites(list);
+        if (list.length) setSiteId(list[0].id);
+      })
+      .catch((e) => setError(e.message));
+  }, []);
+
+  const site = sites?.find((s) => s.id === siteId) || null;
+  const brand = site && /^#[0-9a-fA-F]{6}$/.test(site.brand_color) ? site.brand_color : '#2563EB';
 
   return (
     <div className="min-h-screen bg-slate-100">
       <header className="border-b border-slate-200 bg-white">
         <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-2">
-            <span className="inline-block h-3 w-3 rounded-full" style={{ background: brand }} />
+          <div className="flex items-center gap-3">
             <span className="font-semibold text-slate-900">{me.name}</span>
-            <span className="text-sm text-slate-400">— your Fieldr portal</span>
+            {/* Site switcher (only shown when there's more than one site) */}
+            {sites && sites.length > 1 && (
+              <select
+                value={siteId || ''}
+                onChange={(e) => setSiteId(e.target.value)}
+                className="rounded-lg border border-slate-300 px-2 py-1 text-sm focus:border-emerald-500 focus:outline-none"
+              >
+                {sites.map((s) => (
+                  <option key={s.id} value={s.id}>{s.name}</option>
+                ))}
+              </select>
+            )}
+            {sites && sites.length === 1 && (
+              <span className="text-sm text-slate-400">— {sites[0].name}</span>
+            )}
           </div>
-          <button onClick={onLogout} className="text-sm text-slate-500 hover:text-slate-800">
-            Log out
-          </button>
+          <button onClick={onLogout} className="text-sm text-slate-500 hover:text-slate-800">Log out</button>
         </div>
         <nav className="mx-auto flex max-w-4xl gap-1 px-6">
           {TABS.map((t) => (
@@ -34,9 +60,7 @@ export default function PortalHome({ me, onLogout }) {
               onClick={() => setTab(t)}
               className={
                 'border-b-2 px-3 py-2 text-sm font-medium ' +
-                (tab === t
-                  ? 'border-emerald-600 text-emerald-700'
-                  : 'border-transparent text-slate-500 hover:text-slate-700')
+                (tab === t ? 'border-emerald-600 text-emerald-700' : 'border-transparent text-slate-500 hover:text-slate-700')
               }
             >
               {t}
@@ -46,10 +70,19 @@ export default function PortalHome({ me, onLogout }) {
       </header>
 
       <main className="mx-auto max-w-4xl px-6 py-8">
-        {tab === 'Overview' && <OverviewTab />}
-        {tab === 'Conversations' && <ConversationsTab brand={brand} />}
-        {tab === 'Leads' && <LeadsTab />}
-        {tab === 'Knowledge base' && <KnowledgeTab />}
+        {error && <ErrorBox>{error}</ErrorBox>}
+        {sites === null && <p className="text-slate-500">Loading…</p>}
+        {sites && sites.length === 0 && (
+          <p className="text-sm text-slate-500">No sites set up yet. Your Fieldr account manager will add one.</p>
+        )}
+        {site && (
+          <>
+            {tab === 'Overview' && <OverviewTab siteId={site.id} />}
+            {tab === 'Conversations' && <ConversationsTab siteId={site.id} brand={brand} />}
+            {tab === 'Leads' && <LeadsTab siteId={site.id} />}
+            {tab === 'Knowledge base' && <KnowledgeTab siteId={site.id} />}
+          </>
+        )}
       </main>
     </div>
   );
@@ -65,12 +98,13 @@ function formatWhen(iso) {
   });
 }
 
-function OverviewTab() {
+function OverviewTab({ siteId }) {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState('');
   useEffect(() => {
-    getStats().then(setStats).catch((e) => setError(e.message));
-  }, []);
+    setStats(null);
+    getStats(siteId).then(setStats).catch((e) => setError(e.message));
+  }, [siteId]);
 
   if (error) return <ErrorBox>{error}</ErrorBox>;
   if (!stats) return <p className="text-slate-500">Loading…</p>;
@@ -89,7 +123,7 @@ function OverviewTab() {
   );
 }
 
-function ConversationsTab({ brand }) {
+function ConversationsTab({ siteId, brand }) {
   const [list, setList] = useState(null);
   const [error, setError] = useState('');
   const [selected, setSelected] = useState(null);
@@ -97,14 +131,17 @@ function ConversationsTab({ brand }) {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    getConversations().then(setList).catch((e) => setError(e.message));
-  }, []);
+    setList(null);
+    setSelected(null);
+    setTranscript(null);
+    getConversations(siteId).then(setList).catch((e) => setError(e.message));
+  }, [siteId]);
 
   function open(id) {
     setSelected(id);
     setTranscript(null);
     setLoading(true);
-    getMessages(id)
+    getMessages(siteId, id)
       .then((d) => setTranscript(d.messages))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
@@ -128,9 +165,7 @@ function ConversationsTab({ brand }) {
           >
             <div className="flex items-center justify-between">
               <span className="font-medium text-slate-700">{formatWhen(c.last_message_at)}</span>
-              {c.has_lead && (
-                <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">Lead</span>
-              )}
+              {c.has_lead && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700">Lead</span>}
             </div>
           </button>
         ))}
@@ -146,9 +181,7 @@ function ConversationsTab({ brand }) {
                 key={i}
                 className={
                   'max-w-[80%] rounded-2xl px-3 py-2 text-sm ' +
-                  (m.role === 'visitor'
-                    ? 'self-end text-white'
-                    : 'self-start border border-slate-200 bg-slate-50 text-slate-800')
+                  (m.role === 'visitor' ? 'self-end text-white' : 'self-start border border-slate-200 bg-slate-50 text-slate-800')
                 }
                 style={m.role === 'visitor' ? { background: brand } : undefined}
               >
@@ -162,17 +195,17 @@ function ConversationsTab({ brand }) {
   );
 }
 
-function LeadsTab() {
+function LeadsTab({ siteId }) {
   const [leads, setLeads] = useState(null);
   const [error, setError] = useState('');
   useEffect(() => {
-    getLeads().then(setLeads).catch((e) => setError(e.message));
-  }, []);
+    setLeads(null);
+    getLeads(siteId).then(setLeads).catch((e) => setError(e.message));
+  }, [siteId]);
 
   if (error) return <ErrorBox>{error}</ErrorBox>;
   if (leads === null) return <p className="text-slate-500">Loading…</p>;
-  if (leads.length === 0)
-    return <p className="text-sm text-slate-500">No leads captured yet. When a visitor leaves their details, they'll show up here.</p>;
+  if (leads.length === 0) return <p className="text-sm text-slate-500">No leads captured yet for this site.</p>;
 
   return (
     <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
@@ -200,22 +233,23 @@ function LeadsTab() {
   );
 }
 
-function KnowledgeTab() {
+function KnowledgeTab({ siteId }) {
   const [content, setContent] = useState(null);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    getKnowledgeBase().then((d) => setContent(d.content ?? '')).catch((e) => setError(e.message));
-  }, []);
+    setContent(null);
+    getKnowledgeBase(siteId).then((d) => setContent(d.content ?? '')).catch((e) => setError(e.message));
+  }, [siteId]);
 
   async function save() {
     setBusy(true);
     setError('');
     setSaved(false);
     try {
-      await saveKnowledgeBase(content);
+      await saveKnowledgeBase(siteId, content);
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
     } catch (e) {
@@ -230,9 +264,8 @@ function KnowledgeTab() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-slate-500">
-        This is what your chatbot knows about your business. Keep it accurate and up to date —
-        the bot only answers from what's here. Plain text works best: services, prices, opening
-        hours, FAQs, policies.
+        This is what this site's chatbot knows about your business. Keep it accurate — the bot only
+        answers from what's here.
       </p>
       {error && <ErrorBox>{error}</ErrorBox>}
       <textarea
@@ -245,11 +278,7 @@ function KnowledgeTab() {
         <span className="text-xs text-slate-400">{(content ?? '').length.toLocaleString()} characters</span>
         <div className="flex items-center gap-3">
           {saved && <span className="text-sm text-emerald-600">Saved ✓</span>}
-          <button
-            onClick={save}
-            disabled={busy}
-            className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50"
-          >
+          <button onClick={save} disabled={busy} className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50">
             {busy ? 'Saving…' : 'Save changes'}
           </button>
         </div>

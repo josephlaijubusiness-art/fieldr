@@ -44,14 +44,21 @@ export const createClient = (body) =>
 export const updateClient = (id, body) =>
   request(`/clients/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
 export const deleteClient = (id) => request(`/clients/${id}`, { method: 'DELETE' });
-export const getKnowledgeBase = (id) => request(`/clients/${id}/knowledge-base`);
-export const saveKnowledgeBase = (id, content) =>
-  request(`/clients/${id}/knowledge-base`, {
-    method: 'PUT',
-    body: JSON.stringify({ content }),
-  });
-export const crawlWebsite = (id, url) =>
-  request(`/clients/${id}/crawl`, { method: 'POST', body: JSON.stringify({ url }) });
+
+// Sites (each client/account can have one or more)
+export const getSites = (clientId) => request(`/clients/${clientId}/sites`);
+export const createSite = (clientId, body) =>
+  request(`/clients/${clientId}/sites`, { method: 'POST', body: JSON.stringify(body) });
+export const getSite = (siteId) => request(`/sites/${siteId}`);
+export const updateSite = (siteId, body) =>
+  request(`/sites/${siteId}`, { method: 'PATCH', body: JSON.stringify(body) });
+export const deleteSite = (siteId) => request(`/sites/${siteId}`, { method: 'DELETE' });
+export const saveSiteKnowledgeBase = (siteId, content) =>
+  request(`/sites/${siteId}/knowledge-base`, { method: 'PUT', body: JSON.stringify({ content }) });
+export const crawlSiteWebsite = (siteId, url) =>
+  request(`/sites/${siteId}/crawl`, { method: 'POST', body: JSON.stringify({ url }) });
+export const getSiteConversations = (siteId) =>
+  request(`/sites/${siteId}/conversations`);
 
 export const getOverview = () => request('/stats/overview');
 export const getContactRequests = () => request('/contact');
@@ -71,8 +78,6 @@ export const setPortalPassword = (id, password) =>
 // Dev: its own Vite port. Prod: set VITE_PORTAL_URL on Railway.
 export const PORTAL_ORIGIN =
   import.meta.env.VITE_PORTAL_URL || 'http://localhost:5174';
-export const getConversations = (clientId) =>
-  request(`/clients/${clientId}/conversations`);
 export const getConversationMessages = (conversationId) =>
   request(`/conversations/${conversationId}/messages`);
 

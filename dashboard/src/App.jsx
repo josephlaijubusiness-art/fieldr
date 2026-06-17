@@ -6,6 +6,7 @@ import Overview from './pages/Overview.jsx';
 import ClientsList from './pages/ClientsList.jsx';
 import NewClient from './pages/NewClient.jsx';
 import ClientDetail from './pages/ClientDetail.jsx';
+import SiteDetail from './pages/SiteDetail.jsx';
 import ContactRequests from './pages/ContactRequests.jsx';
 
 const navLinkClass = ({ isActive }) =>
@@ -78,6 +79,7 @@ export default function App() {
           <Route path="/clients" element={<ClientsList />} />
           <Route path="/clients/new" element={<NewClient />} />
           <Route path="/clients/:id" element={<ClientDetail />} />
+          <Route path="/clients/:id/sites/:siteId" element={<SiteDetail />} />
           <Route path="/contact-requests" element={<ContactRequests />} />
         </Routes>
       </main>

@@ -34,10 +34,14 @@ async function request(path, options = {}) {
 export const login = (email, password) =>
   request('/login', { method: 'POST', body: JSON.stringify({ email, password }) });
 export const getMe = () => request('/me');
-export const getStats = () => request('/stats');
-export const getConversations = () => request('/conversations');
-export const getMessages = (id) => request(`/conversations/${id}/messages`);
-export const getLeads = () => request('/leads');
-export const getKnowledgeBase = () => request('/knowledge-base');
-export const saveKnowledgeBase = (content) =>
-  request('/knowledge-base', { method: 'PUT', body: JSON.stringify({ content }) });
+export const getSites = () => request('/sites');
+
+// All data is per-site now.
+export const getStats = (siteId) => request(`/sites/${siteId}/stats`);
+export const getConversations = (siteId) => request(`/sites/${siteId}/conversations`);
+export const getMessages = (siteId, conversationId) =>
+  request(`/sites/${siteId}/conversations/${conversationId}/messages`);
+export const getLeads = (siteId) => request(`/sites/${siteId}/leads`);
+export const getKnowledgeBase = (siteId) => request(`/sites/${siteId}/knowledge-base`);
+export const saveKnowledgeBase = (siteId, content) =>
+  request(`/sites/${siteId}/knowledge-base`, { method: 'PUT', body: JSON.stringify({ content }) });

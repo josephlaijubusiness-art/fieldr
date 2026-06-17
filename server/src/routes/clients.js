@@ -1,11 +1,15 @@
 import { Router } from 'express';
 import bcrypt from 'bcryptjs';
 import { supabase } from '../db.js';
-import { crawlSite, normalizeStartUrl } from '../crawler.js';
+import {
+  pickSiteFields,
+  validateSite,
+  maxSitesForPlan,
+} from '../siteFields.js';
 
-// Client management API.
-// NOTE: no login protection yet — fine while everything runs only on
-// your own machine. Admin authentication gets added before we deploy.
+// Client (account) management API. A client is an account; the sites that hang
+// off it (branding, knowledge base, embed code) are managed via the sites
+// router. All routes here are admin-only (guarded where mounted in index.js).
 
 const router = Router();
 
@@ -13,19 +17,9 @@ const PLANS = ['starter', 'growth', 'pro'];
 const STATUSES = ['trial', 'active', 'paused', 'cancelled'];
 const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-// Only these fields may be set through the API. Stripe IDs and the
-// portal login link are managed by their own features later, so a
-// typo in a request can never overwrite them.
-const EDITABLE_FIELDS = [
-  'name',
-  'domain',
-  'contact_email',
-  'brand_color',
-  'bot_name',
-  'welcome_message',
-  'plan',
-  'status',
-];
+// Account-level editable fields. Branding moved to sites; Stripe IDs and the
+// portal password are managed by their own features.
+const EDITABLE_FIELDS = ['name', 'contact_email', 'plan', 'status'];
 
 function pickEditableFields(body) {
   const out = {};
@@ -48,13 +42,24 @@ function validate(fields, { requireName = false } = {}) {
   if (fields.status !== undefined && !STATUSES.includes(fields.status)) {
     return `status must be one of: ${STATUSES.join(', ')}`;
   }
-  if (
-    fields.brand_color !== undefined &&
-    !/^#[0-9a-f]{6}$/i.test(fields.brand_color)
-  ) {
-    return 'brand_color must be a hex colour like #2563EB';
-  }
   return null;
+}
+
+// Create a site row plus its (empty) knowledge base. Returns the new site.
+async function createSite(clientId, fields) {
+  const { data: site, error } = await supabase
+    .from('sites')
+    .insert({ client_id: clientId, ...fields })
+    .select()
+    .single();
+  if (error) throw new Error(error.message);
+
+  const { error: kbError } = await supabase
+    .from('knowledge_bases')
+    .insert({ site_id: site.id, content: '' });
+  if (kbError) throw new Error(kbError.message);
+
+  return site;
 }
 
 // Reject IDs that aren't valid UUIDs early, with a clear message.
@@ -79,10 +84,9 @@ router.get('/', async (req, res) => {
 });
 
 // ---------------------------------------------------------
-// POST /api/clients — add a new client
-// Body: { name (required), domain, contact_email, brand_color,
-//         bot_name, welcome_message, plan, status }
-// Also creates their empty knowledge base automatically.
+// POST /api/clients — add a new client (account).
+// Body: { name (required), contact_email, plan, status }
+// Automatically creates a first "Main site" with its empty knowledge base.
 // ---------------------------------------------------------
 router.post('/', async (req, res) => {
   const fields = pickEditableFields(req.body ?? {});
@@ -94,27 +98,24 @@ router.post('/', async (req, res) => {
     .insert(fields)
     .select()
     .single();
-
   if (error) return res.status(500).json({ error: error.message });
 
-  // Every client gets a knowledge base row from day one,
-  // so the chat endpoint never has to wonder if one exists.
-  const { error: kbError } = await supabase
-    .from('knowledge_bases')
-    .insert({ client_id: client.id, content: '' });
-
-  if (kbError) return res.status(500).json({ error: kbError.message });
+  try {
+    await createSite(client.id, { name: client.name || 'Main site' });
+  } catch (e) {
+    return res.status(500).json({ error: e.message });
+  }
 
   res.status(201).json(client);
 });
 
 // ---------------------------------------------------------
-// GET /api/clients/:id — one client, including their knowledge base
+// GET /api/clients/:id — one client account
 // ---------------------------------------------------------
 router.get('/:id', async (req, res) => {
   const { data, error } = await supabase
     .from('clients')
-    .select('*, knowledge_bases(content, updated_at)')
+    .select('*')
     .eq('id', req.params.id)
     .maybeSingle();
 
@@ -124,7 +125,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // ---------------------------------------------------------
-// PATCH (or PUT) /api/clients/:id — update any editable fields
+// PATCH (or PUT) /api/clients/:id — update account fields
 // ---------------------------------------------------------
 async function updateClient(req, res) {
   const fields = pickEditableFields(req.body ?? {});
@@ -149,9 +150,9 @@ router.patch('/:id', updateClient);
 router.put('/:id', updateClient);
 
 // ---------------------------------------------------------
-// DELETE /api/clients/:id — remove a client.
-// The database cascades: their knowledge base, conversations,
-// messages and leads are deleted too. Permanent!
+// DELETE /api/clients/:id — remove a client account.
+// Cascades: all their sites, knowledge bases, conversations, messages,
+// and leads are deleted too. Permanent!
 // ---------------------------------------------------------
 router.delete('/:id', async (req, res) => {
   const { data, error } = await supabase
@@ -167,114 +168,58 @@ router.delete('/:id', async (req, res) => {
 });
 
 // ---------------------------------------------------------
-// GET /api/clients/:id/knowledge-base — read their bot's knowledge
+// GET /api/clients/:id/sites — list this client's sites
 // ---------------------------------------------------------
-router.get('/:id/knowledge-base', async (req, res) => {
+router.get('/:id/sites', async (req, res) => {
   const { data, error } = await supabase
-    .from('knowledge_bases')
-    .select('content, updated_at')
+    .from('sites')
+    .select('*')
     .eq('client_id', req.params.id)
-    .maybeSingle();
-
-  if (error) return res.status(500).json({ error: error.message });
-  if (!data) return res.status(404).json({ error: 'Client not found' });
-  res.json(data);
-});
-
-// ---------------------------------------------------------
-// PUT /api/clients/:id/knowledge-base — replace their bot's knowledge
-// Body: { content: "everything the bot should know, as plain text" }
-// ---------------------------------------------------------
-router.put('/:id/knowledge-base', async (req, res) => {
-  const { content } = req.body ?? {};
-  if (typeof content !== 'string') {
-    return res.status(400).json({ error: 'content must be text' });
-  }
-
-  const { data, error } = await supabase
-    .from('knowledge_bases')
-    .upsert({ client_id: req.params.id, content }, { onConflict: 'client_id' })
-    .select('content, updated_at')
-    .maybeSingle();
+    .order('created_at', { ascending: true });
 
   if (error) return res.status(500).json({ error: error.message });
   res.json(data);
 });
 
 // ---------------------------------------------------------
-// GET /api/clients/:id/conversations — list this client's chats,
-// most recently active first. Each is flagged if it produced a lead.
-// (The full transcript of one chat is at /api/conversations/:id/messages.)
+// POST /api/clients/:id/sites — add a site (enforces the plan limit)
 // ---------------------------------------------------------
-router.get('/:id/conversations', async (req, res) => {
-  const { data: conversations, error } = await supabase
-    .from('conversations')
-    .select('id, session_id, started_at, last_message_at')
-    .eq('client_id', req.params.id)
-    .order('last_message_at', { ascending: false })
-    .limit(100);
-  if (error) return res.status(500).json({ error: error.message });
+router.post('/:id/sites', async (req, res) => {
+  const fields = pickSiteFields(req.body ?? {});
+  const problem = validateSite(fields, { requireName: true });
+  if (problem) return res.status(400).json({ error: problem });
 
-  // Mark which conversations led to a captured lead.
-  const { data: leads, error: leadError } = await supabase
-    .from('leads')
-    .select('conversation_id')
-    .eq('client_id', req.params.id);
-  if (leadError) return res.status(500).json({ error: leadError.message });
-
-  const leadConvIds = new Set(leads.map((l) => l.conversation_id));
-  res.json(
-    conversations.map((c) => ({ ...c, has_lead: leadConvIds.has(c.id) }))
-  );
-});
-
-// ---------------------------------------------------------
-// POST /api/clients/:id/crawl — crawl a website, extract its text, and save
-// it as this client's knowledge base (overwrites the existing content).
-// Body: { url }  (falls back to the client's saved domain if omitted)
-// Doubles as the "refresh" action — call it again to re-crawl.
-// ---------------------------------------------------------
-router.post('/:id/crawl', async (req, res) => {
-  const { data: client, error } = await supabase
+  // Check the account's plan and how many sites it already has.
+  const { data: client, error: clientError } = await supabase
     .from('clients')
-    .select('id, domain')
+    .select('plan')
     .eq('id', req.params.id)
     .maybeSingle();
-  if (error) return res.status(500).json({ error: error.message });
+  if (clientError) return res.status(500).json({ error: clientError.message });
   if (!client) return res.status(404).json({ error: 'Client not found' });
 
-  let startUrl;
-  try {
-    startUrl = normalizeStartUrl(req.body?.url || client.domain || '');
-  } catch (e) {
-    return res.status(400).json({ error: e.message });
-  }
+  const { count, error: countError } = await supabase
+    .from('sites')
+    .select('*', { count: 'exact', head: true })
+    .eq('client_id', req.params.id);
+  if (countError) return res.status(500).json({ error: countError.message });
 
-  let result;
-  try {
-    result = await crawlSite(startUrl);
-  } catch (e) {
-    return res.status(502).json({ error: 'Crawl failed: ' + e.message });
-  }
-
-  if (result.pagesCrawled === 0) {
-    return res.status(422).json({
+  const max = maxSitesForPlan(client.plan);
+  if ((count ?? 0) >= max) {
+    return res.status(403).json({
       error:
-        "Couldn't read any pages from that website. Check the address is correct and publicly reachable.",
+        max === 1
+          ? `The ${client.plan} plan includes 1 site. Upgrade to Pro for up to 3.`
+          : `The ${client.plan} plan allows up to ${max} sites.`,
     });
   }
 
-  const { error: saveError } = await supabase
-    .from('knowledge_bases')
-    .upsert({ client_id: client.id, content: result.content }, { onConflict: 'client_id' });
-  if (saveError) return res.status(500).json({ error: saveError.message });
-
-  res.json({
-    content: result.content,
-    pagesCrawled: result.pagesCrawled,
-    characters: result.characters,
-    truncated: result.truncated,
-  });
+  try {
+    const site = await createSite(req.params.id, fields);
+    res.status(201).json(site);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // ---------------------------------------------------------
