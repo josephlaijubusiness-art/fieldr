@@ -75,5 +75,6 @@ npm run dev        -> http://localhost:5174
 - [x] Website crawler: auto-build a site's knowledge base from its website (`/api/sites/:id/crawl`)
 - [x] Multi-site: clients (accounts) can have multiple sites (Pro: 3, others: 1) — run `database/add-multi-site.sql`
 - [x] Lead email notifications via Resend (emails the client's contact email on each captured lead)
+- [x] Widget notification chime (Web Audio; plays on bot reply only when the chat window is open)
 - [ ] Deploy to Railway + connect domains (follow DEPLOY.md)
 - [ ] Deploy to Railway + connect fieldr.ie

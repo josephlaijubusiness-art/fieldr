@@ -106,6 +106,36 @@
       return el;
     }
 
+    // A soft two-note chime (Web Audio — no sound file needed) played when the
+    // bot replies. Only sounds while the chat window is open, and stays quiet.
+    var audioCtx = null;
+    function playChime() {
+      if (!panel.classList.contains('fieldr-open')) return;
+      try {
+        var Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        if (!audioCtx) audioCtx = new Ctx();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        var now = audioCtx.currentTime;
+        [[660, 0], [880, 0.08]].forEach(function (note) {
+          var osc = audioCtx.createOscillator();
+          var gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = note[0];
+          var t = now + note[1];
+          gain.gain.setValueAtTime(0, t);
+          gain.gain.linearRampToValueAtTime(0.06, t + 0.012); // gentle, low volume
+          gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.16); // soft decay
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(t);
+          osc.stop(t + 0.18);
+        });
+      } catch (e) {
+        /* if audio isn't available, no sound is fine */
+      }
+    }
+
     function toggle(open) {
       panel.classList.toggle('fieldr-open', open);
       if (open && !welcomed) {
@@ -145,6 +175,7 @@
         .then(function (data) {
           typing.remove();
           addMsg(data.reply || data.error || 'Sorry, something went wrong. Please try again.', 'bot');
+          if (data.reply) playChime(); // chime only on a genuine reply
         })
         .catch(function () {
           typing.remove();
