@@ -2,6 +2,7 @@ import { Router } from 'express';
 import Anthropic from '@anthropic-ai/sdk';
 import { supabase } from '../db.js';
 import { resolveSite } from '../resolveSite.js';
+import { sendLeadNotification } from '../email.js';
 
 // The chat endpoint. This is what each site's widget talks to.
 // POST /api/chat  body: { site_id, session_id, message }
@@ -53,7 +54,9 @@ ${knowledge || '(No business information has been added yet. Apologise that you 
 }
 
 // Save a lead and tell the bot how it went, so it can confirm to the visitor.
-async function saveLead(siteId, clientId, conversationId, input, triggerMessage) {
+// On success, emails the client a notification in the background (best effort —
+// a failed/disabled email never affects lead capture or the chat).
+async function saveLead(site, conversationId, input, triggerMessage) {
   const email = typeof input.email === 'string' ? input.email.trim() : '';
   const phone = typeof input.phone === 'string' ? input.phone.trim() : '';
   const name = typeof input.name === 'string' ? input.name.trim() : '';
@@ -66,8 +69,8 @@ async function saveLead(siteId, clientId, conversationId, input, triggerMessage)
   }
 
   const { error } = await supabase.from('leads').insert({
-    site_id: siteId,
-    client_id: clientId,
+    site_id: site.id,
+    client_id: site.client_id,
     conversation_id: conversationId,
     name: name || null,
     email: email || null,
@@ -82,6 +85,18 @@ async function saveLead(siteId, clientId, conversationId, input, triggerMessage)
       result: 'Saving failed due to a technical problem. Apologise and suggest they try again shortly.',
     };
   }
+
+  // Notify the client by email — fire-and-forget so the chat reply isn't delayed.
+  sendLeadNotification({
+    to: site.clients?.contact_email,
+    accountName: site.clients?.name,
+    siteName: site.name,
+    name,
+    email,
+    phone,
+    triggerMessage,
+  }).catch(() => {});
+
   return { ok: true, result: 'Contact details saved. The team will follow up.' };
 }
 
@@ -191,13 +206,7 @@ router.post('/', async (req, res) => {
       const toolResults = [];
       for (const block of response.content) {
         if (block.type !== 'tool_use') continue;
-        const outcome = await saveLead(
-          site.id,
-          site.client_id,
-          conversation.id,
-          block.input,
-          visitorMessage
-        );
+        const outcome = await saveLead(site, conversation.id, block.input, visitorMessage);
         toolResults.push({
           type: 'tool_result',
           tool_use_id: block.id,

@@ -74,5 +74,6 @@ npm run dev        -> http://localhost:5174
 - [x] Deploy prep: production builds, env-driven API URLs, self-contained backend ([DEPLOY.md](DEPLOY.md))
 - [x] Website crawler: auto-build a site's knowledge base from its website (`/api/sites/:id/crawl`)
 - [x] Multi-site: clients (accounts) can have multiple sites (Pro: 3, others: 1) — run `database/add-multi-site.sql`
+- [x] Lead email notifications via Resend (emails the client's contact email on each captured lead)
 - [ ] Deploy to Railway + connect domains (follow DEPLOY.md)
 - [ ] Deploy to Railway + connect fieldr.ie

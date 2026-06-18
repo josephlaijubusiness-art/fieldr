@@ -1,7 +1,7 @@
 import { supabase } from './db.js';
 
 const SITE_FIELDS =
-  'id, client_id, name, brand_color, bot_name, welcome_message, clients(name, status)';
+  'id, client_id, name, brand_color, bot_name, welcome_message, clients(name, status, contact_email)';
 
 // Look up a site for the widget/chat, accepting EITHER a real site id OR a
 // legacy client id (so embed codes created before multi-site still work — they
