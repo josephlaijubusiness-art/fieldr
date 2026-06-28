@@ -61,6 +61,14 @@ export const getSiteConversations = (siteId) =>
   request(`/sites/${siteId}/conversations`);
 
 export const getOverview = () => request('/stats/overview');
+
+// Prospects (sales pipeline)
+export const getProspects = () => request('/prospects');
+export const updateProspect = (id, body) =>
+  request(`/prospects/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
+export const generateProspectEmail = (id) =>
+  request(`/prospects/${id}/email`, { method: 'POST' });
+
 export const getContactRequests = () => request('/contact');
 export const updateContactRequest = (id, handled) =>
   request(`/contact/${id}`, { method: 'PATCH', body: JSON.stringify({ handled }) });

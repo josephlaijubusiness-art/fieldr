@@ -76,5 +76,6 @@ npm run dev        -> http://localhost:5174
 - [x] Multi-site: clients (accounts) can have multiple sites (Pro: 3, others: 1) — run `database/add-multi-site.sql`
 - [x] Lead email notifications via Resend (emails the client's contact email on each captured lead)
 - [x] Widget notification chime (Web Audio; plays on bot reply only when the chat window is open)
+- [x] Prospects page: sales pipeline + AI cold-email generator (`/api/prospects`) — run `database/add-prospects.sql`
 - [ ] Deploy to Railway + connect domains (follow DEPLOY.md)
 - [ ] Deploy to Railway + connect fieldr.ie

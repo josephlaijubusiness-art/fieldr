@@ -16,6 +16,7 @@ import portalRouter from './routes/portal.js';
 import contactRouter from './routes/contact.js';
 import adminRouter from './routes/admin.js';
 import sitesRouter from './routes/sites.js';
+import prospectsRouter from './routes/prospects.js';
 import { requireAdminAuth } from './auth.js';
 
 const app = express();
@@ -48,6 +49,9 @@ app.use('/api/clients', requireAdminAuth, clientsRouter);
 
 // Per-site management (branding, knowledge base, embed, conversations)
 app.use('/api/sites', requireAdminAuth, sitesRouter);
+
+// Sales pipeline: prospects + AI cold-email generator
+app.use('/api/prospects', requireAdminAuth, prospectsRouter);
 
 // Dashboard stats (MRR, chats, leads) and chat-history transcripts
 app.use('/api/stats', requireAdminAuth, statsRouter);

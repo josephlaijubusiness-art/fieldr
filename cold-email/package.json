@@ -1,0 +1,17 @@
+{
+  "name": "fieldr-cold-email",
+  "version": "1.0.0",
+  "description": "Zero-dependency cold-email CLI for Irish SME outreach (Ashbourne, Co. Meath).",
+  "bin": {
+    "prospects": "cli.js"
+  },
+  "scripts": {
+    "list": "node cli.js list",
+    "report": "node cli.js report",
+    "start": "node cli.js help"
+  },
+  "engines": {
+    "node": ">=16"
+  },
+  "private": true
+}
